@@ -1,15 +1,30 @@
 {
-  "name": "nodejs",
+  "name": "crocobras",
   "version": "1.0.0",
-  "description": "",
+  "description": "Noyau logique du jeu « Le bras d'un mec », où les joueurs combattent des crocodiles pour protéger un bras.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "game",
+    "logic",
+    "crocodile",
+    "arm",
+    "nodejs",
+    "casual"
+  ],
+  "author": "nekoclem <ton-email@exemple.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nekoclem/crocobras.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nekoclem/crocobras/issues"
+  },
+  "homepage": "https://github.com/nekoclem/crocobras#readme",
   "dependencies": {
-    "@types/node": "^22.13.11"
+    "nekomaths": "^1.0.0"  
   }
 }
