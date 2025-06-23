@@ -17,6 +17,33 @@ ignorePorts = false
 runButton = "Lancer Agent IA"
 
 [[workflows.workflow]]
+name = "run package"
+mode = "sequential"
+author = 10543762
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
+
+[[workflows.workflow]]
+name = "install"
+mode = "sequential"
+author = 10543762
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install express path"
+
+[[workflows.workflow]]
+name = "Web ia"
+mode = "sequential"
+author = 10543762
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node crocobras-agent.js"
+
+[[workflows.workflow]]
 name = "Lancer Agent IA"
 author = 10543762
 mode = "sequential"

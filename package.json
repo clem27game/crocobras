@@ -25,6 +25,8 @@
   },
   "homepage": "https://github.com/nekoclem/crocobras#readme",
   "dependencies": {
-    "nekomaths": "^1.0.0"  
+    "express": "^5.1.0",
+    "nekomaths": "^1.0.0",
+    "path": "^0.12.7"
   }
 }
