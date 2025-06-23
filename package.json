@@ -1,6 +1,6 @@
 {
   "name": "crocobras",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Noyau logique du jeu « Le bras d'un mec », où les joueurs combattent des crocodiles pour protéger un bras.",
   "main": "index.js",
   "scripts": {

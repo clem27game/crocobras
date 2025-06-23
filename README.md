@@ -434,3 +434,7 @@ Toutes les idées et contributions sont les bienvenues ! N'hésitez pas à ouvri
 - ✨ Ajout de `crocoexplose()` pour les explosions de crocodiles
 - 🔧 Nouvelle fonction `crocokillAdvanced()` qui prend en compte les nouvelles mécaniques
 - 📡 Nouveaux événements pour toutes les nouvelles fonctionnalités
+
+**Lien de notre documentation officielle** :
+
+https://croco-combat-arena.lovable.app/
