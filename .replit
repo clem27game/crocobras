@@ -14,7 +14,7 @@ deploymentTarget = "autoscale"
 ignorePorts = false
 
 [workflows]
-runButton = "Lancer Agent IA"
+runButton = "Test Package"
 
 [[workflows.workflow]]
 name = "run package"
@@ -42,3 +42,12 @@ author = 10543762
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node crocobras-agent.js"
+
+[[workflows.workflow]]
+name = "Test Package"
+author = 10543762
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
