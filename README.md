@@ -1,4 +1,5 @@
 
+
 # crocobras
 
 Le cœur logique du jeu "Le bras d'un mec", un jeu où vous combattez des crocodiles pour protéger un bras !
@@ -13,13 +14,29 @@ Développé par [nekoclem](https://github.com/nekoclem).
 * Gestion de la vie du bras et du "Game Over".
 * Détection des événements clés du jeu (coup de feu, crocodile tué, bras mangé, changement de niveau).
 * Options de personnalisation pour adapter le jeu à votre vision.
-* **Nouveau v1.1.0** : Système de power-ups personnalisés avec `crocopow`
-* **Nouveau v1.1.0** : Système de boosts temporaires avec `crocoboost`
-* **Nouveau v1.1.0** : Système de points de vie pour crocodiles avec `crocolife`
-* **Nouveau v1.1.0** : Système d'armure/force des crocodiles avec `crocoarmure`
-* **Nouveau v1.1.0** : Personnalisation de la vitesse des crocodiles avec `crocorap`
-* **Nouveau v1.1.0** : Système de danse/esquive avec `crocopop`
-* **Nouveau v1.1.0** : Explosions de crocodiles avec `crocoexplose`
+
+### Fonctionnalités v1.1.0
+* **Système de power-ups personnalisés** avec `crocopow`
+* **Système de boosts temporaires** avec `crocoboost`
+* **Système de points de vie pour crocodiles** avec `crocolife`
+* **Système d'armure/force des crocodiles** avec `crocoarmure`
+* **Personnalisation de la vitesse des crocodiles** avec `crocorap`
+* **Système de danse/esquive** avec `crocopop`
+* **Explosions de crocodiles** avec `crocoexplose`
+
+### 🆕 Nouveautés v1.2.0
+* **Système de combos** avec `crocom` pour des effets spéciaux en chaîne
+* **Modes de jeux personnalisés** avec `crocomode` pour créer des défis uniques
+* **Armures spécialisées** avec `crocorpes` aux propriétés avancées
+* **Système de dialogues** avec `crocodial` pour des interactions narratives
+* **Missions et quêtes** avec `crocomise` avec récompenses personnalisées
+* **Système économique complet** avec `crocomons` (monnaie et boutique)
+* **Environnements dynamiques** avec `crocodym` pour des changements de terrain
+* **Personnalisation d'assets** avec `crocopay` pour les apparences
+* **IA avancée des crocodiles** avec `crocia` pour des comportements intelligents
+* **Collectibles et succès** avec `crocohab` pour la progression
+* **Messages créatifs** avec `crocotive` pour des dialogues immersifs
+* **Personnages personnalisés** avec `croconage` pour enrichir l'univers
 
 ## Installation
 
@@ -41,7 +58,6 @@ crocobras exporte une classe CrocobrasGame. Vous devez instancier cette classe p
 const CrocobrasGame = require('crocobras');
 
 // Créez une nouvelle instance du jeu.
-// Vous pouvez passer des paramètres de configuration optionnels.
 const game = new CrocobrasGame({
     initialArmHealth: 200, // Le bras est plus résistant !
     crocoDamage: 20,       // Moins de dégâts par croco
@@ -49,392 +65,883 @@ const game = new CrocobrasGame({
     levelUpThreshold: 10   // 10 crocos pour passer de niveau
 });
 
-// Écoutez les événements du jeu pour mettre à jour votre UI ou jouer des sons
+// Écoutez les événements du jeu
 game.on('gameStarted', (data) => {
     console.log(`Partie démarrée ! Niveau: ${data.level}, Vie du bras: ${data.armHealth}`);
-    // Ici, vous lanceriez la musique de fond
-    game.crocoanm('musicLoop'); // Demande au développeur de jouer le son
-});
-
-game.on('levelInitialized', (data) => {
-    console.log(`Niveau ${data.level} initialisé. Tuez ${data.crocodilesToKill} crocos.`);
-    // Mettez à jour votre UI de niveau et le compteur de crocos
 });
 
 game.on('crocoKilled', (data) => {
     console.log(`Un croco tué ! Restant : ${data.remainingCount}/${data.killedCount + data.remainingCount}`);
-    // Jouez un son de "crocodile mort"
-    game.crocoanm('crocoGrowl'); // Événement pour le son
-    // Mettez à jour le compteur de crocos restants sur votre UI
 });
 
-game.on('armEaten', (data) => {
-    console.warn(`Aïe ! Le bras a été mordu. Vie restante : ${data.currentHealth}`);
-    // Jouez un son de "morsure"
-});
-
-game.on('levelUp', (data) => {
-    console.log(`Félicitations ! Vous êtes au niveau ${data.newLevel} !`);
-    // Mettez à jour votre UI pour le nouveau niveau
-});
-
-game.on('gameOver', (data) => {
-    console.error(`GAME OVER ! Atteint le niveau ${data.finalLevel}. Raison : ${data.reason}`);
-    // Affichez un écran de game over, jouez un son de défaite
-    game.crocoanm('gameOverSound'); // Événement pour le son
-});
-
-game.on('shotFired', () => {
-    console.log("BOUM ! Coup de fusil tiré.");
-    // Jouez un son de tir
-    game.crocoanm('shot'); // Événement pour le son
-});
-
-// --- Démarrer le jeu ---
+// Démarrer le jeu
 game.startGame();
+```
 
-// --- Simuler la logique du jeu (vous feriez cela en réponse aux actions du joueur sur votre UI) ---
+## 🆕 Nouvelles fonctionnalités v1.2.0
 
-// Simuler le joueur qui tire et touche un croco
-// Cela devrait être déclenché par un événement de clic/touche sur votre UI du jeu
-setTimeout(() => {
-    game.crocotire(); // Simule le tir
-    // Après détection de collision dans votre moteur de jeu :
-    game.crocokill(); // Simule la mort d'un croco
-}, 1000);
+### `crocom(comboType, comboLogic, options)` - Système de combos
 
-// Simuler un crocodile qui atteint le bras
-// Cela devrait être déclenché par une détection de collision dans votre moteur de jeu
-setTimeout(() => {
-    game.crocobouffe();
+Créez des systèmes de combos qui augmentent le score ou déclenchent des effets spéciaux.
+
+```javascript
+// Combo de kills consécutifs
+game.crocom('killStreak', function(counter, options, context) {
+    if (counter >= options.threshold) {
+        const multiplier = Math.min(counter * 0.2, options.maxMultiplier);
+        console.log(`Combo x${multiplier} ! ${counter} kills consécutifs !`);
+        
+        // Appliquer un bonus de score ou d'effet
+        this.armHealth += 10; // Bonus de santé
+        return { multiplier: multiplier, bonus: 'health' };
+    }
+    return false;
+}, { 
+    threshold: 3, 
+    maxMultiplier: 5, 
+    resetTime: 5000 
+});
+
+// Déclencher le combo à chaque kill
+game.on('crocoKilled', () => {
+    game.triggerCombo('killStreak');
+});
+```
+
+### `crocomode(modeName, modeLogic, settings)` - Modes de jeux personnalisés
+
+Créez vos propres modes de défis avec des règles spéciales.
+
+```javascript
+// Mode "Survie": résister le plus longtemps possible
+game.crocomode('survival', function(settings, progress) {
+    console.log('Mode Survie activé !');
+    
+    // Logique du mode: crocodiles plus rapides et plus résistants
+    this.settings.crocoDamage *= 1.5;
+    
+    // Timer de difficulté croissante
+    const difficultyTimer = setInterval(() => {
+        if (this.isGameRunning) {
+            this.settings.crocoPerLevel += 1;
+            console.log('Difficulté augmentée !');
+        } else {
+            clearInterval(difficultyTimer);
+        }
+    }, 30000); // Chaque 30 secondes
+    
+}, {
+    timeLimit: null,
+    objectives: ['Survivre le plus longtemps possible'],
+    difficulty: 'extreme'
+});
+
+// Activer le mode
+game.activateGameMode('survival');
+```
+
+### `crocorpes(armorType, properties, armorLogic)` - Armures spécialisées
+
+Créez des armures avec des propriétés spéciales et des effets uniques.
+
+```javascript
+// Armure régénératrice
+game.crocorpes('regenerative', {
+    defense: 25,
+    resistance: { explosion: 0.5, poison: 0.8 },
+    durability: 200,
+    regenerationRate: 2
+}, function(properties) {
+    console.log('Armure régénératrice équipée !');
+    
+    // Régénération automatique
+    const regenInterval = setInterval(() => {
+        if (this.equippedArmor === 'regenerative' && this.armHealth < this.settings.initialArmHealth) {
+            this.armHealth = Math.min(
+                this.armHealth + properties.regenerationRate, 
+                this.settings.initialArmHealth
+            );
+            this.emit('armorRegeneration', { health: this.armHealth });
+        } else {
+            clearInterval(regenInterval);
+        }
+    }, 1000);
+});
+
+// Équiper l'armure
+game.equipArmor('regenerative');
+```
+
+### `crocodial(dialogueId, dialogueData, dialogueLogic)` - Système de dialogues
+
+Créez des dialogues interactifs pour enrichir l'expérience narrative.
+
+```javascript
+// Dialogue d'introduction
+game.crocodial('intro', {
+    texts: [
+        "Bienvenue dans l'arène des crocodiles !",
+        "Votre bras est en danger, défendez-le !",
+        "Que la bataille commence !"
+    ],
+    speaker: 'narrator',
+    choices: [
+        { text: "Commencer", action: 'start' },
+        { text: "Instructions", action: 'help' }
+    ]
+}, function(data, context) {
+    console.log(`Dialogue démarré: ${data.texts[0]}`);
+    
+    // Logique de dialogue interactif
+    if (context.choice === 'start') {
+        this.startGame();
+    } else if (context.choice === 'help') {
+        this.startDialogue('tutorial');
+    }
+});
+
+// Démarrer le dialogue
+game.startDialogue('intro');
+```
+
+### `crocomise(missionId, missionData, missionLogic)` - Missions et quêtes
+
+Créez des missions avec des objectifs et des récompenses personnalisées.
+
+```javascript
+// Mission de survie
+game.crocomise('firstSurvival', {
+    title: 'Premier Combat',
+    description: 'Survivez à votre premier combat contre les crocodiles',
+    objectives: [
+        'Tuer 10 crocodiles',
+        'Garder au moins 50% de vie'
+    ],
+    rewards: {
+        coins: 100,
+        experience: 50,
+        unlock: 'basic_armor'
+    },
+    difficulty: 'easy'
+}, function(data, progress) {
+    // Vérifier les objectifs
+    progress.crocoKilled = this.killedCrocodilesThisLevel || 0;
+    progress.healthPercentage = (this.armHealth / this.settings.initialArmHealth) * 100;
+    
+    const objective1 = progress.crocoKilled >= 10;
+    const objective2 = progress.healthPercentage >= 50;
+    
+    if (objective1 && objective2) {
+        this.completeMission('firstSurvival', {
+            success: true,
+            bonus: progress.healthPercentage > 80 ? 'perfect' : 'good'
+        });
+    }
+});
+
+// Démarrer la mission
+game.startMission('firstSurvival');
+```
+
+### `crocomons(currencyName, shopData, purchaseLogic)` - Système économique
+
+Créez votre propre système de monnaie et boutique avec des articles personnalisés.
+
+```javascript
+// Système de pièces d'or
+game.crocomons('gold', {
+    startingAmount: 50,
+    currencyProperties: { symbol: '🪙', name: 'Pièces d\'or' },
+    items: [
+        { id: 'health_potion', name: 'Potion de santé', price: 25, effect: 'heal' },
+        { id: 'armor_upgrade', name: 'Amélioration d\'armure', price: 100, effect: 'armor' },
+        { id: 'rapid_fire', name: 'Tir rapide', price: 75, effect: 'powerup' }
+    ],
+    settings: { discountEvents: true, dailyDeals: true }
+}, function(purchaseData) {
+    const { itemId, quantity, currency, inventory } = purchaseData;
+    const item = this.economy.shop.gold.items.find(i => i.id === itemId);
+    
+    if (!item) return { success: false, error: 'Article introuvable' };
+    
+    const totalCost = item.price * quantity;
+    if (currency.amount < totalCost) {
+        return { success: false, error: 'Pas assez de pièces' };
+    }
+    
+    // Effectuer l'achat
+    currency.amount -= totalCost;
+    
+    // Appliquer l'effet de l'article
+    switch (item.effect) {
+        case 'heal':
+            this.armHealth = Math.min(
+                this.armHealth + (50 * quantity), 
+                this.settings.initialArmHealth
+            );
+            break;
+        case 'armor':
+            this.equipArmor('upgraded_armor');
+            break;
+        case 'powerup':
+            this.activatePowerUp('rapidFire');
+            break;
+    }
+    
+    return { 
+        success: true, 
+        cost: totalCost, 
+        effect: item.effect,
+        newBalance: currency.amount 
+    };
+});
+
+// Effectuer un achat
+const result = game.purchase('gold', 'health_potion', 1);
+if (result.success) {
+    console.log('Potion achetée avec succès !');
+}
+```
+
+### `crocodym(environmentId, environmentData, environmentLogic)` - Environnements dynamiques
+
+Créez des environnements qui changent et affectent le gameplay.
+
+```javascript
+// Environnement orageux
+game.crocodym('storm', {
+    obstacles: [
+        { type: 'lightning', frequency: 'high', damage: 30 },
+        { type: 'rain', effect: 'visibility_reduced' }
+    ],
+    effects: ['reduced_visibility', 'random_lightning'],
+    climate: 'stormy',
+    visibility: 0.6
+}, function(data, parameters) {
+    console.log('Tempête activée ! Visibilité réduite et éclairs !');
+    
+    // Éclairs aléatoires qui endommagent le bras ou les crocodiles
+    const lightningInterval = setInterval(() => {
+        if (this.currentEnvironment === 'storm' && this.isGameRunning) {
+            const lightningTarget = Math.random();
+            
+            if (lightningTarget < 0.3) {
+                // Éclair frappe le bras
+                this.armHealth -= 15;
+                this.emit('environmentDamage', { 
+                    type: 'lightning', 
+                    target: 'arm', 
+                    damage: 15 
+                });
+                console.log('⚡ Éclair frappe le bras !');
+            } else if (lightningTarget < 0.7) {
+                // Éclair frappe un crocodile (aide le joueur)
+                this.crocokill();
+                this.emit('environmentHelp', { 
+                    type: 'lightning', 
+                    target: 'crocodile' 
+                });
+                console.log('⚡ Éclair élimine un crocodile !');
+            }
+        } else {
+            clearInterval(lightningInterval);
+        }
+    }, 3000);
+});
+
+// Activer l'environnement orageux
+game.activateEnvironment('storm');
+```
+
+### `crocopay(assetType, assetData, customizationLogic)` - Personnalisation d'assets
+
+Permettez aux joueurs de personnaliser l'apparence du jeu.
+
+```javascript
+// Skins de crocodiles
+game.crocopay('crocodile', {
+    id: 'golden_croco',
+    name: 'Crocodile Doré',
+    rarity: 'legendary',
+    price: 500,
+    unlocked: false,
+    effects: ['golden_glow', 'increased_value']
+}, function(data) {
+    console.log(`Skin crocodile équipé: ${data.name}`);
+    
+    // Les crocodiles dorés donnent plus de points
+    this.on('crocoKilled', (killData) => {
+        if (this.equippedAssets.crocodile === 'golden_croco') {
+            // Bonus de points ou de monnaie
+            this.economy.currencies.gold.amount += 5;
+            this.emit('bonusReward', { 
+                type: 'golden_kill', 
+                bonus: 5, 
+                currency: 'gold' 
+            });
+        }
+    });
+});
+
+// Arrière-plans personnalisés
+game.crocopay('background', {
+    id: 'sunset_beach',
+    name: 'Plage au coucher de soleil',
+    rarity: 'rare',
+    price: 200,
+    unlocked: true,
+    ambiance: 'peaceful'
+}, function(data) {
+    console.log(`Arrière-plan changé: ${data.name}`);
+    
+    // Effet d'ambiance: régénération lente
+    if (data.ambiance === 'peaceful') {
+        const peaceInterval = setInterval(() => {
+            if (this.equippedAssets.background === 'sunset_beach' && this.isGameRunning) {
+                this.armHealth = Math.min(this.armHealth + 1, this.settings.initialArmHealth);
+            } else {
+                clearInterval(peaceInterval);
+            }
+        }, 5000);
+    }
+});
+
+// Équiper les assets
+game.equipAsset('crocodile', 'golden_croco');
+game.equipAsset('background', 'sunset_beach');
+```
+
+### `crocia(crocoId, aiType, aiLogic, aiSettings)` - IA avancée des crocodiles
+
+Créez des comportements d'IA intelligents et adaptatifs pour les crocodiles.
+
+```javascript
+// IA agressive qui apprend des patterns du joueur
+game.crocia(1, 'adaptive_aggressive', function(aiData) {
+    const { crocoId, gameState, aiState, settings, memory, context } = aiData;
+    
+    // Analyser les patterns du joueur
+    const playerShots = memory.filter(m => m.type === 'player_shot').slice(-5);
+    const avgShotInterval = playerShots.length > 1 ? 
+        playerShots.reduce((sum, shot, i) => {
+            if (i > 0) sum += shot.timestamp - playerShots[i-1].timestamp;
+            return sum;
+        }, 0) / (playerShots.length - 1) : 3000;
+    
+    let decision = { action: 'advance', newState: 'aggressive' };
+    
+    // Stratégie basée sur l'apprentissage
+    if (avgShotInterval < 1000) {
+        // Joueur tire rapidement -> esquiver plus
+        decision = { 
+            action: 'dodge', 
+            newState: 'evasive',
+            dodgeChance: 0.7 
+        };
+    } else if (gameState.armHealth < 50) {
+        // Bras faible -> attaque coordonnée
+        decision = { 
+            action: 'coordinated_attack', 
+            newState: 'hunting',
+            aggression: 1.0 
+        };
+    } else if (settings.memory.length > 10) {
+        // Beaucoup d'expérience -> comportement imprévisible
+        const randomBehavior = Math.random();
+        if (randomBehavior < 0.3) {
+            decision = { action: 'feint', newState: 'deceptive' };
+        } else if (randomBehavior < 0.6) {
+            decision = { action: 'retreat', newState: 'cautious' };
+        }
+    }
+    
+    // Enregistrer la décision en mémoire
+    settings.memory.push({
+        timestamp: Date.now(),
+        type: 'ai_decision',
+        decision: decision.action,
+        context: { armHealth: gameState.armHealth, level: gameState.currentLevel }
+    });
+    
+    return decision;
+}, {
+    aggressiveness: 0.8,
+    intelligence: 0.9,
+    adaptability: 0.7,
+    memory: []
+});
+
+// Mettre à jour l'IA régulièrement
+setInterval(() => {
+    if (game.isGameRunning) {
+        game.updateCrocodileAI(1, { 
+            playerAction: 'observing',
+            timeElapsed: Date.now() 
+        });
+    }
 }, 2000);
-
-// Redémarrer le jeu après un certain temps (ou après un clic sur "recommencer")
-setTimeout(() => {
-    if (game.isGameOver) {
-        game.crocoreset();
-        game.startGame(); // On doit démarrer après un reset
-    }
-}, 5000);
 ```
 
-## Fonctions de Personnalisation
+### `crocohab(collectibleType, collectibleData, collectibleLogic)` - Collectibles et succès
 
-### `crocofuls(customGunLogic)`
-Cette fonction vous permet de définir une logique personnalisée pour la détection des coups de feu. Le package n'implémente pas la détection de collision visuelle. C'est à vous de le faire dans votre code côté client/moteur de jeu, puis d'appeler `game.crocokill()` lorsque vous détectez qu'un crocodile a été touché.
-
-```javascript
-// Exemple d'utilisation (dans votre code côté client)
-// Supposez que vous avez une fonction `detectCollision(bullet, crocodile)`
-// Si detectCollision renvoie true, alors vous appelez :
-game.crocotire(); // Tir visuel, son
-// ... (votre logique de détection de collision ici)
-// if (collisionDetected) {
-//    game.crocokill(); // Dit au package que le croco est mort
-// }
-```
-
-### `croconumber(targetCrocosPerLevel)`
-
-Utilisez cette fonction pour personnaliser le nombre de crocodiles qu'il faut tuer pour passer au niveau suivant.
-Par défaut, ce seuil est de 5 crocodiles par niveau.
+Créez des systèmes de collection et d'accomplissements.
 
 ```javascript
-// Exemple : Il faut 7 crocodiles pour passer au niveau suivant
-game.croconumber(7);
-```
-
-### `crocoanm(soundType)`
-
-Cette fonction est un simple déclencheur d'événement. Le package ne joue pas de sons, mais il émet un événement playAnimationSound avec le soundType spécifié. C'est à votre application de mettre en place la lecture audio en réponse à cet événement.
-Exemples de soundType : 'shot', 'crocoGrowl', 'musicLoop', 'gameOverSound'.
-
-### `crocustom(customization)`
-
-Pour des personnalisations plus avancées. Vous pouvez passer une fonction qui recevra l'instance du jeu, vous permettant d'ajouter ou de modifier des comportements.
-
-```javascript
-game.crocustom((gameInstance) => {
-    // Exemple : Ajouter une fonction spéciale au jeu
-    gameInstance.cheatCode = () => {
-        gameInstance.currentLevel = 10;
-        gameInstance.emit('cheatActivated', { newLevel: 10 });
-        gameInstance.initializeLevel(10); // Redémarre le niveau 10
-        console.log("Cheat code activé ! Niveau 10 !");
-    };
-
-    // Exemple : Modifier une méthode existante
-    const originalStartGame = gameInstance.startGame;
-    gameInstance.startGame = function() {
-        console.log("Bienvenue dans le bras d'un mec (version personnalisée) !");
-        originalStartGame.apply(this, arguments);
-    };
-});
-
-// Appeler la nouvelle fonction ou la méthode modifiée
-// game.cheatCode();
-// game.startGame(); // Appellera la version modifiée
-```
-
-## Nouvelles fonctionnalités v1.1.0
-
-### `crocopow(powerUpType, powerUpLogic, options)` - Power-ups personnalisés
-
-Créez vos propres power-ups avec une logique JavaScript personnalisée.
-
-```javascript
-// Définir un power-up de santé
-game.crocopow('superHealth', function(options) {
-    this.armHealth += options.value;
-    console.log(`Power-up de santé activé ! +${options.value} PV`);
-}, { value: 50, duration: 0 });
-
-// Définir un power-up de tir rapide
-game.crocopow('rapidFire', function(options) {
-    this.rapidFireActive = true;
-    setTimeout(() => {
-        this.rapidFireActive = false;
-        console.log('Tir rapide désactivé');
-    }, options.duration);
-}, { duration: 5000 });
-
-// Activer un power-up
-game.activatePowerUp('superHealth');
-game.activatePowerUp('rapidFire');
-```
-
-### `crocoboost(boostType, value, duration, onExpire)` - Boosts temporaires
-
-Créez des systèmes de boost temporaires ou de cadeaux personnalisés.
-
-```javascript
-// Boost de vitesse temporaire
-game.crocoboost('speedBoost', 2.0, 3000, () => {
-    console.log('Le boost de vitesse a expiré !');
-});
-
-// Boost de dégâts
-game.crocoboost('damageBoost', 50, 10000);
-
-// Vérifier si un boost est actif
-if (game.getActiveBoost('speedBoost')) {
-    console.log('Boost de vitesse actif !');
-}
-```
-
-### `crocolife(crocoId, health, options)` - Points de vie des crocodiles
-
-Définissez un système de points de vie pour les crocodiles avant qu'ils meurent.
-
-```javascript
-// Donner 100 PV au crocodile #1
-game.crocolife(1, 100, { 
-    maxHealth: 100, 
-    regeneration: 5 // 5 PV de régénération par seconde
-});
-
-// Infliger des dégâts à un crocodile spécifique
-const crocoMort = game.damageCrocodile(1, 25); // Inflige 25 dégâts
-if (crocoMort) {
-    console.log('Le crocodile est mort !');
-}
-```
-
-### `crocoarmure(crocoId, strength, strengthLogic)` - Force/Armure des crocodiles
-
-Personnalisez la force des crocodiles avec une logique d'augmentation automatique.
-
-```javascript
-// Crocodile avec force qui augmente selon le niveau
-game.crocoarmure(1, 10, function(currentStrength, context) {
-    // La force augmente de 5 à chaque niveau
-    return currentStrength + (context.level * 5);
-});
-
-// Mettre à jour la force avec le contexte actuel
-game.updateCrocodileStrength(1, { level: game.currentLevel });
-```
-
-### `crocorap(crocoId, speed, speedModifier)` - Vitesse des crocodiles
-
-Personnalisez la vitesse des crocodiles avec des modificateurs dynamiques.
-
-```javascript
-// Crocodile dont la vitesse augmente avec le temps
-game.crocorap(1, 1.0, function(baseSpeed, factors) {
-    const timeMultiplier = factors.timeElapsed ? 1 + (factors.timeElapsed / 10000) : 1;
-    return baseSpeed * timeMultiplier;
-});
-
-// Mettre à jour la vitesse
-game.updateCrocodileSpeed(1, { timeElapsed: 5000 });
-```
-
-### `crocopop(crocoId, danceType, danceLogic, options)` - Système de danse/esquive
-
-Créez des systèmes d'esquive et de mouvements spéciaux pour les crocodiles.
-
-```javascript
-// Système d'esquive avec probabilité
-game.crocopop(1, 'dodge', function(crocoId, options) {
-    const dodgeSuccess = Math.random() < options.dodgeChance;
-    if (dodgeSuccess) {
-        console.log(`Crocodile ${crocoId} esquive l'attaque !`);
-        return 'dodged';
-    }
-    return 'hit';
-}, { dodgeChance: 0.3, duration: 1000 });
-
-// Déclencher une esquive
-const dodged = game.triggerCrocodileDance(1, 'dodge');
-if (dodged) {
-    console.log('Le crocodile tente une esquive !');
-}
-```
-
-### `crocoexplose(crocoId, explosionDamage, explosionRadius, explosionLogic)` - Explosions
-
-Faites exploser des crocodiles à leur mort, infligeant des dégâts de zone.
-
-```javascript
-// Explosion simple qui endommage le bras
-game.crocoexplose(1, 30, 50);
-
-// Explosion personnalisée avec logique spéciale
-game.crocoexplose(2, 40, 75, function(explosion) {
-    // Logique personnalisée d'explosion
-    console.log(`Explosion massive ! Dégâts: ${explosion.damage}`);
+// Succès de précision
+game.crocohab('achievement', {
+    id: 'sharpshooter',
+    name: 'Tireur d\'élite',
+    description: 'Touchez 10 crocodiles d\'affilée sans rater',
+    rarity: 'epic',
+    rewards: { gold: 200, experience: 100, title: 'Sniper' },
+    requirements: { consecutive_hits: 10 }
+}, function(checkData) {
+    const { gameState, context, progress } = checkData;
     
-    // Infliger des dégâts à d'autres crocodiles dans le rayon
-    // (implémentation dépendante de votre système de positionnement)
+    if (context.eventType === 'shot_fired') {
+        progress.shots = (progress.shots || 0) + 1;
+    }
     
-    // Infliger des dégâts au bras
-    this.armHealth -= explosion.damage * 0.3;
+    if (context.eventType === 'crocodile_killed') {
+        progress.hits = (progress.hits || 0) + 1;
+        progress.consecutive_hits = (progress.consecutive_hits || 0) + 1;
+    }
+    
+    if (context.eventType === 'shot_missed') {
+        progress.consecutive_hits = 0; // Reset du compteur
+    }
+    
+    // Vérifier si le succès est débloqué
+    if (progress.consecutive_hits >= 10) {
+        return { 
+            unlocked: true, 
+            progress: progress,
+            perfectRun: progress.consecutive_hits > 15 // Bonus si > 15
+        };
+    }
+    
+    return { unlocked: false, progress: progress };
+});
+
+// Objets à collecter
+game.crocohab('collectible', {
+    id: 'rare_scale',
+    name: 'Écaille Rare',
+    description: 'Écaille dorée tombée d\'un crocodile légendaire',
+    rarity: 'legendary',
+    rewards: { gold: 50, crafting_material: 'golden_scale' },
+    requirements: { kill_golden_crocodile: true }
+}, function(checkData) {
+    const { context } = checkData;
+    
+    // Se déclenche quand un crocodile doré est tué
+    if (context.eventType === 'crocodile_killed' && context.crocodileType === 'golden') {
+        const dropChance = Math.random();
+        if (dropChance < 0.1) { // 10% de chance
+            return { unlocked: true, dropChance: dropChance };
+        }
+    }
+    
+    return { unlocked: false };
+});
+
+// Vérifier les collectibles lors d'événements
+game.on('crocoKilled', () => {
+    game.checkCollectibles('achievement', { eventType: 'crocodile_killed' });
+    game.checkCollectibles('collectible', { 
+        eventType: 'crocodile_killed',
+        crocodileType: 'golden' // Exemple
+    });
 });
 ```
 
-## Événements supplémentaires v1.1.0
+### `crocotive(messageType, messageData, messageLogic)` - Messages créatifs
 
-Les nouvelles fonctionnalités émettent également leurs propres événements :
+Ajoutez des dialogues immersifs et des commentaires dynamiques.
 
 ```javascript
-// Événements des power-ups
-game.on('customPowerUpRegistered', (data) => {
-    console.log(`Power-up '${data.type}' enregistré`);
+// Messages des crocodiles
+game.crocotive('crocodile_taunts', {
+    messages: [
+        "Tu ne peux pas nous arrêter tous !",
+        "Ce bras a l'air délicieux...",
+        "Prépare-toi à perdre !",
+        "Nous sommes légion !",
+        "Tu commences à fatiguer, humain !"
+    ],
+    frequency: 'random',
+    speakers: ['Croco Alpha', 'Croco Veteran', 'Croco Sauvage'],
+    conditions: { minLevel: 1, maxFrequency: 10000 }
+}, function(messageData) {
+    const { gameState, context, history } = messageData;
+    
+    // Logique pour choisir le message approprié
+    let selectedMessage;
+    let speaker;
+    
+    if (gameState.armHealth < 30) {
+        selectedMessage = "Tu commences à fatiguer, humain !";
+        speaker = "Croco Alpha";
+    } else if (gameState.currentLevel > 5) {
+        selectedMessage = "Nous sommes légion !";
+        speaker = "Croco Veteran";
+    } else {
+        // Message aléatoire
+        const randomIndex = Math.floor(Math.random() * messageData.data.messages.length);
+        selectedMessage = messageData.data.messages[randomIndex];
+        const speakerIndex = Math.floor(Math.random() * messageData.data.speakers.length);
+        speaker = messageData.data.speakers[speakerIndex];
+    }
+    
+    return { message: selectedMessage, speaker: speaker };
 });
 
-game.on('powerUpActivated', (data) => {
-    console.log(`Power-up '${data.type}' activé !`);
+// Messages du bras (commentaires humoristiques)
+game.crocotive('arm_comments', {
+    messages: [
+        "Aïe ! Ça pique !",
+        "Heureusement que j'ai une bonne assurance...",
+        "Je ne suis qu'un bras innocent !",
+        "Pourquoi moi ?!",
+        "J'aurais dû rester au lit ce matin..."
+    ],
+    frequency: 'on_damage',
+    speakers: ['Le Bras']
+}, function(messageData) {
+    const { gameState, context } = messageData;
+    
+    if (context.eventType === 'arm_damaged') {
+        const healthPercentage = (gameState.armHealth / this.settings.initialArmHealth) * 100;
+        
+        let message;
+        if (healthPercentage < 20) {
+            message = "Je ne suis qu'un bras innocent !";
+        } else if (healthPercentage < 50) {
+            message = "Aïe ! Ça pique !";
+        } else {
+            const randomIndex = Math.floor(Math.random() * messageData.data.messages.length);
+            message = messageData.data.messages[randomIndex];
+        }
+        
+        return { message: message, speaker: "Le Bras" };
+    }
+    
+    return null;
 });
 
-// Événements des boosts
-game.on('boostActivated', (data) => {
-    console.log(`Boost '${data.type}' activé pour ${data.duration}ms`);
+// Déclencher les messages lors d'événements
+game.on('armEaten', () => {
+    game.triggerCreativeMessage('arm_comments', { eventType: 'arm_damaged' });
 });
 
-game.on('boostExpired', (data) => {
-    console.log(`Boost '${data.type}' expiré`);
-});
-
-// Événements des crocodiles
-game.on('crocodileHealthSet', (data) => {
-    console.log(`Crocodile ${data.crocoId} a ${data.health} PV`);
-});
-
-game.on('crocodileDamaged', (data) => {
-    console.log(`Crocodile ${data.crocoId} endommagé: ${data.remainingHealth} PV restants`);
-});
-
-game.on('crocodileExploded', (data) => {
-    console.log(`Crocodile ${data.crocoId} a explosé !`);
-});
-
-game.on('crocodileDanceTriggered', (data) => {
-    console.log(`Crocodile ${data.crocoId} exécute: ${data.danceType}`);
-});
+setInterval(() => {
+    if (game.isGameRunning && Math.random() < 0.1) { // 10% de chance toutes les 3 secondes
+        game.triggerCreativeMessage('crocodile_taunts');
+    }
+}, 3000);
 ```
 
-## Architecture de votre jeu
+### `croconage(characterId, characterData, characterLogic)` - Personnages personnalisés
 
-Pour créer le jeu complet, vous aurez besoin de deux parties :
+Créez des personnages uniques pour enrichir votre univers de jeu.
 
-**Le Backend (avec crocobras) :**
-* Un serveur Node.js (par exemple avec Express) qui utilise crocobras pour gérer la logique du jeu.
-* Ce serveur peut exposer une API REST pour communiquer avec le frontend.
+```javascript
+// Personnage allié: Le Garde
+game.croconage('guardian', {
+    name: 'Le Garde Mystérieux',
+    type: 'ally',
+    health: 150,
+    abilities: ['heal_arm', 'distract_crocodiles', 'power_boost'],
+    appearance: { color: 'blue', size: 'tall', weapon: 'staff' },
+    personality: { helpful: 0.9, mysterious: 0.8, brave: 0.7 }
+}, function(characterData) {
+    const { gameState, spawnData, currentState, action } = characterData;
+    
+    if (action === 'spawn') {
+        console.log(`${characterData.data.name} apparaît pour vous aider !`);
+        
+        // Le garde offre de l'aide selon la situation
+        if (gameState.armHealth < 50) {
+            this.armHealth += 25;
+            this.emit('characterAction', { 
+                character: 'guardian', 
+                action: 'heal', 
+                value: 25 
+            });
+            console.log("Le Garde soigne votre bras !");
+        }
+        
+        return { newState: 'helping', interaction: 'heal_performed' };
+    }
+    
+    if (action === 'update') {
+        // Comportement continu du garde
+        const helpChance = Math.random();
+        
+        if (helpChance < 0.1 && gameState.crocodilesRemaining > 3) {
+            // Distraire les crocodiles
+            this.crocodilesRemaining = Math.max(0, this.crocodilesRemaining - 1);
+            this.emit('characterAction', { 
+                character: 'guardian', 
+                action: 'distract', 
+                value: 1 
+            });
+            console.log("Le Garde distrait un crocodile !");
+            
+            return { 
+                newState: 'distracting', 
+                interaction: 'distraction_successful' 
+            };
+        } else if (helpChance < 0.05) {
+            // Boost de puissance temporaire
+            this.crocoboost('guardian_blessing', 2.0, 5000, () => {
+                console.log("La bénédiction du Garde s'estompe...");
+            });
+            
+            return { 
+                newState: 'blessing', 
+                interaction: 'power_boost_given' 
+            };
+        }
+        
+        return { newState: currentState };
+    }
+});
 
-**Le Frontend (UI et jeu visuel) :**
-* HTML, CSS, JavaScript pour l'interface utilisateur.
-* Une bibliothèque ou un framework de jeu (comme Phaser.js, PixiJS, ou même le Canvas API HTML5 natif) pour dessiner le bras, les crocodiles, gérer les animations, les sons, et les interactions utilisateur.
-* Ce code frontend communiquerait avec votre backend Node.js pour envoyer les actions du joueur et recevoir les mises à jour de l'état du jeu.
+// Personnage neutre: Le Marchand
+game.croconage('merchant', {
+    name: 'Marchand Ambulant',
+    type: 'neutral',
+    health: 80,
+    abilities: ['sell_items', 'buy_items', 'offer_deals'],
+    appearance: { color: 'green', size: 'medium', accessory: 'bag' },
+    personality: { greedy: 0.6, friendly: 0.8, cunning: 0.7 }
+}, function(characterData) {
+    const { gameState, action } = characterData;
+    
+    if (action === 'spawn') {
+        console.log("Un marchand mystérieux apparaît !");
+        
+        // Proposer des objets selon le niveau
+        const shopItems = [
+            { name: 'Potion de santé', price: 20, effect: 'heal' },
+            { name: 'Munitions bonus', price: 30, effect: 'ammo' },
+            { name: 'Protection temporaire', price: 50, effect: 'shield' }
+        ];
+        
+        this.emit('characterInteraction', {
+            character: 'merchant',
+            type: 'shop_opened',
+            items: shopItems
+        });
+        
+        return { newState: 'trading', interaction: 'shop_opened' };
+    }
+    
+    if (action === 'update') {
+        // Le marchand part après un certain temps
+        const stayTime = 15000; // 15 secondes
+        setTimeout(() => {
+            this.emit('characterAction', { 
+                character: 'merchant', 
+                action: 'leave' 
+            });
+            console.log("Le marchand repart avec ses marchandises...");
+        }, stayTime);
+        
+        return { newState: 'waiting' };
+    }
+});
 
-## Exemple complet avec les nouvelles fonctionnalités
+// Faire apparaître des personnages selon des conditions
+game.on('levelUp', (data) => {
+    if (data.newLevel === 3) {
+        game.spawnCharacter('guardian', { reason: 'level_milestone' });
+    }
+    
+    if (data.newLevel % 5 === 0) { // Tous les 5 niveaux
+        game.spawnCharacter('merchant', { reason: 'periodic_visit' });
+    }
+});
+
+// Mettre à jour les personnages actifs
+setInterval(() => {
+    if (game.isGameRunning && game.activeCharacters) {
+        game.activeCharacters.forEach(characterId => {
+            game.updateCharacter(characterId, { timestamp: Date.now() });
+        });
+    }
+}, 2000);
+```
+
+## Événements v1.2.0
+
+Les nouvelles fonctionnalités émettent de nombreux nouveaux événements :
+
+```javascript
+// Événements des combos
+game.on('comboTriggered', (data) => {
+    console.log(`Combo ${data.type} niveau ${data.level} !`);
+});
+
+// Événements des modes de jeu
+game.on('gameModeActivated', (data) => {
+    console.log(`Mode ${data.name} activé !`);
+});
+
+// Événements des dialogues
+game.on('dialogueStarted', (data) => {
+    console.log(`Dialogue démarré: ${data.id}`);
+});
+
+// Événements des missions
+game.on('missionCompleted', (data) => {
+    console.log(`Mission "${data.data.title}" terminée !`);
+});
+
+// Événements économiques
+game.on('purchaseCompleted', (data) => {
+    console.log(`Achat: ${data.itemId} avec ${data.currencyName}`);
+});
+
+// Événements environnementaux
+game.on('environmentActivated', (data) => {
+    console.log(`Environnement ${data.id} activé`);
+});
+
+// Événements des personnages
+game.on('characterSpawned', (data) => {
+    console.log(`${data.data.name} est apparu !`);
+});
+
+// Et bien d'autres...
+```
+
+## Exemple complet avec toutes les nouvelles fonctionnalités
 
 ```javascript
 const CrocobrasGame = require('crocobras');
 
 const game = new CrocobrasGame();
 
-// Configurer des crocodiles avec différentes caractéristiques
-function setupCrocodile(id) {
-    // Points de vie basés sur le niveau
-    game.crocolife(id, 50 + (game.currentLevel * 25));
+// Configuration d'un jeu complet avec toutes les nouvelles fonctionnalités
+function setupCompleteGame() {
+    // 1. Système de combos
+    game.crocom('killStreak', function(counter, options) {
+        if (counter >= options.threshold) {
+            this.economy.currencies.gold.amount += counter * 5;
+            return { multiplier: counter * 0.5, goldBonus: counter * 5 };
+        }
+        return false;
+    }, { threshold: 3, resetTime: 5000 });
     
-    // Force qui augmente avec le niveau
-    game.crocoarmure(id, 10, function(currentStrength, context) {
-        return currentStrength + (context.level * 3);
+    // 2. Mode survie
+    game.crocomode('survival', function(settings) {
+        this.settings.crocoPerLevel *= 1.5;
+        console.log('Mode Survie activé ! Difficulté augmentée !');
+    }, { difficulty: 'extreme' });
+    
+    // 3. Armure régénératrice
+    game.crocorpes('regen', {
+        defense: 30,
+        regenerationRate: 3
+    }, function(properties) {
+        setInterval(() => {
+            if (this.equippedArmor === 'regen') {
+                this.armHealth = Math.min(
+                    this.armHealth + properties.regenerationRate,
+                    this.settings.initialArmHealth
+                );
+            }
+        }, 1000);
     });
     
-    // Vitesse qui augmente avec le temps
-    game.crocorap(id, 1.0, function(baseSpeed, factors) {
-        return baseSpeed * (1 + factors.level * 0.1);
+    // 4. Système économique
+    game.crocomons('gold', {
+        startingAmount: 100,
+        items: [
+            { id: 'health', name: 'Potion', price: 25 },
+            { id: 'armor', name: 'Armure', price: 100 }
+        ]
+    }, function(data) {
+        const item = this.economy.shop.gold.items.find(i => i.id === data.itemId);
+        if (data.currency.amount >= item.price) {
+            data.currency.amount -= item.price;
+            if (item.id === 'health') this.armHealth += 50;
+            if (item.id === 'armor') this.equipArmor('regen');
+            return { success: true };
+        }
+        return { success: false };
     });
     
-    // Esquive avec plus de chance aux niveaux élevés
-    game.crocopop(id, 'dodge', function(crocoId, options) {
-        return Math.random() < options.dodgeChance;
-    }, { 
-        dodgeChance: 0.1 + (game.currentLevel * 0.05), 
-        duration: 1000 
+    // 5. Personnage allié
+    game.croconage('helper', {
+        name: 'Assistant Magique',
+        abilities: ['heal', 'boost']
+    }, function(data) {
+        if (data.action === 'spawn') {
+            this.armHealth += 20;
+            console.log('Assistant magique vous aide !');
+        }
+    });
+    
+    // 6. Messages créatifs
+    game.crocotive('comments', {
+        messages: [
+            "Excellent tir !",
+            "Continue comme ça !",
+            "Attention, ils arrivent !"
+        ]
+    }, function(data) {
+        const randomMsg = data.data.messages[Math.floor(Math.random() * data.data.messages.length)];
+        return { message: randomMsg, speaker: 'Narrateur' };
     });
 }
 
-// Power-up de bombe qui fait exploser tous les crocodiles
-game.crocopow('bomb', function(options) {
-    console.log('BOMBE ACTIVÉE ! Tous les crocodiles explosent !');
-    // Ici vous feriez exploser tous les crocodiles actifs
-    for (let i = 1; i <= 5; i++) {
-        game.crocoexplose(i, 25, 100);
-    }
-});
+// Initialisation du jeu complet
+setupCompleteGame();
 
-// Démarrer le jeu et configurer les crocodiles
+// Démarrage et test
 game.startGame();
-for (let i = 1; i <= 3; i++) {
-    setupCrocodile(i);
-}
+game.activateGameMode('survival');
+game.equipArmor('regen');
+game.spawnCharacter('helper');
 
-// Activer la bombe après 10 secondes
-setTimeout(() => {
-    game.activatePowerUp('bomb');
-}, 10000);
+// Simulation de gameplay
+setInterval(() => {
+    if (game.isGameRunning) {
+        game.crocokill();
+        game.triggerCombo('killStreak');
+        
+        if (Math.random() < 0.3) {
+            game.triggerCreativeMessage('comments');
+        }
+    }
+}, 2000);
 ```
 
 ## Contribution
 
 Toutes les idées et contributions sont les bienvenues ! N'hésitez pas à ouvrir des issues ou à soumettre des pull requests sur le dépôt GitHub.
 
-## Changelog v1.1.0
+## Changelog v1.2.0
 
-- ✨ Ajout de `crocopow()` pour les power-ups personnalisés
-- ✨ Ajout de `crocoboost()` pour les boosts temporaires
-- ✨ Ajout de `crocolife()` pour les points de vie des crocodiles
-- ✨ Ajout de `crocoarmure()` pour la force/armure des crocodiles
-- ✨ Ajout de `crocorap()` pour la vitesse personnalisée des crocodiles
-- ✨ Ajout de `crocopop()` pour les systèmes de danse/esquive
-- ✨ Ajout de `crocoexplose()` pour les explosions de crocodiles
-- 🔧 Nouvelle fonction `crocokillAdvanced()` qui prend en compte les nouvelles mécaniques
-- 📡 Nouveaux événements pour toutes les nouvelles fonctionnalités
+- ✨ Ajout de `crocom()` pour les systèmes de combos
+- ✨ Ajout de `crocomode()` pour les modes de jeux personnalisés  
+- ✨ Ajout de `crocorpes()` pour les armures spécialisées
+- ✨ Ajout de `crocodial()` pour le système de dialogues
+- ✨ Ajout de `crocomise()` pour les missions et quêtes
+- ✨ Ajout de `crocomons()` pour le système économique complet
+- ✨ Ajout de `crocodym()` pour les environnements dynamiques
+- ✨ Ajout de `crocopay()` pour la personnalisation d'assets
+- ✨ Ajout de `crocia()` pour l'IA avancée des crocodiles
+- ✨ Ajout de `crocohab()` pour les collectibles et succès
+- ✨ Ajout de `crocotive()` pour les messages créatifs
+- ✨ Ajout de `croconage()` pour les personnages personnalisés
+- 📡 Plus de 20 nouveaux événements pour toutes les nouvelles fonctionnalités
+- 🎮 Possibilités de personnalisation quasi-infinies pour les développeurs
 
 **Lien de notre documentation officielle** :
 
 https://croco-combat-arena.lovable.app/
+

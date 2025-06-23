@@ -631,6 +631,901 @@ class CrocobrasGame extends EventEmitter {
         
         return killed;
     }
+
+    /**
+     * crocom: Permet d'écrire des systèmes de combo qui augmentent le score ou déclenchent des effets spéciaux.
+     * @param {string} comboType - Type de combo (ex: 'killStreak', 'perfectAim', 'rapidKills')
+     * @param {Function} comboLogic - Logique du combo qui gère le déclenchement et les effets
+     * @param {Object} [options] - Options du combo (seuil, multiplicateur, durée, etc.)
+     */
+    crocom(comboType, comboLogic, options = {}) {
+        if (typeof comboLogic !== 'function') {
+            throw new Error("crocom: comboLogic doit être une fonction.");
+        }
+        
+        if (!this.combos) {
+            this.combos = {};
+            this.comboCounters = {};
+        }
+        
+        this.combos[comboType] = {
+            logic: comboLogic,
+            options: { 
+                threshold: 3, 
+                multiplier: 1.5, 
+                resetTime: 5000, 
+                maxLevel: 10,
+                ...options 
+            },
+            isActive: false,
+            level: 0
+        };
+        
+        this.comboCounters[comboType] = 0;
+        
+        this.emit('comboRegistered', { type: comboType, options });
+        console.log(`[Crocobras] Combo '${comboType}' enregistré.`);
+    }
+
+    /**
+     * Déclenche la vérification d'un combo
+     * @param {string} comboType - Type de combo à vérifier
+     * @param {Object} [context] - Contexte pour la logique du combo
+     */
+    triggerCombo(comboType, context = {}) {
+        if (!this.combos || !this.combos[comboType]) return false;
+        
+        const combo = this.combos[comboType];
+        this.comboCounters[comboType]++;
+        
+        const result = combo.logic.call(this, this.comboCounters[comboType], combo.options, context);
+        
+        if (result && this.comboCounters[comboType] >= combo.options.threshold) {
+            combo.isActive = true;
+            combo.level = Math.min(combo.level + 1, combo.options.maxLevel);
+            
+            this.emit('comboTriggered', { 
+                type: comboType, 
+                level: combo.level, 
+                counter: this.comboCounters[comboType],
+                result: result
+            });
+            
+            console.log(`[Crocobras] Combo '${comboType}' niveau ${combo.level} déclenché !`);
+            
+            // Reset automatique après un délai
+            setTimeout(() => {
+                this.resetCombo(comboType);
+            }, combo.options.resetTime);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Remet à zéro un combo
+     * @param {string} comboType - Type de combo à reset
+     */
+    resetCombo(comboType) {
+        if (this.combos && this.combos[comboType]) {
+            this.combos[comboType].isActive = false;
+            this.combos[comboType].level = 0;
+            this.comboCounters[comboType] = 0;
+            
+            this.emit('comboReset', { type: comboType });
+            console.log(`[Crocobras] Combo '${comboType}' remis à zéro.`);
+        }
+    }
+
+    /**
+     * crocomode: Permet aux développeurs de créer leurs propres modes de défis.
+     * @param {string} modeName - Nom du mode de défi
+     * @param {Function} modeLogic - Logique personnalisée du mode
+     * @param {Object} [settings] - Paramètres spécifiques au mode
+     */
+    crocomode(modeName, modeLogic, settings = {}) {
+        if (typeof modeLogic !== 'function') {
+            throw new Error("crocomode: modeLogic doit être une fonction.");
+        }
+        
+        if (!this.gameModes) {
+            this.gameModes = {};
+        }
+        
+        this.gameModes[modeName] = {
+            logic: modeLogic,
+            settings: {
+                timeLimit: null,
+                objectives: [],
+                rewards: {},
+                difficulty: 'normal',
+                ...settings
+            },
+            isActive: false,
+            progress: {}
+        };
+        
+        this.emit('gameModeRegistered', { name: modeName, settings });
+        console.log(`[Crocobras] Mode de jeu '${modeName}' enregistré.`);
+    }
+
+    /**
+     * Active un mode de jeu spécifique
+     * @param {string} modeName - Nom du mode à activer
+     * @param {Object} [parameters] - Paramètres d'activation
+     */
+    activateGameMode(modeName, parameters = {}) {
+        if (!this.gameModes || !this.gameModes[modeName]) {
+            console.warn(`[Crocobras] Mode '${modeName}' non trouvé.`);
+            return false;
+        }
+        
+        const mode = this.gameModes[modeName];
+        mode.isActive = true;
+        mode.progress = { startTime: Date.now(), ...parameters };
+        
+        mode.logic.call(this, mode.settings, mode.progress);
+        
+        this.emit('gameModeActivated', { name: modeName, settings: mode.settings, progress: mode.progress });
+        console.log(`[Crocobras] Mode '${modeName}' activé !`);
+        return true;
+    }
+
+    /**
+     * crocorpes: Permet aux développeurs de créer des armures avec des propriétés spéciales.
+     * @param {string} armorType - Type d'armure
+     * @param {Object} properties - Propriétés de l'armure
+     * @param {Function} [armorLogic] - Logique personnalisée de l'armure
+     */
+    crocorpes(armorType, properties, armorLogic = null) {
+        if (!this.armors) {
+            this.armors = {};
+            this.equippedArmor = null;
+        }
+        
+        this.armors[armorType] = {
+            properties: {
+                defense: 0,
+                resistance: {},
+                effects: [],
+                durability: 100,
+                ...properties
+            },
+            logic: armorLogic,
+            isEquipped: false
+        };
+        
+        this.emit('armorCreated', { type: armorType, properties });
+        console.log(`[Crocobras] Armure '${armorType}' créée.`);
+    }
+
+    /**
+     * Équipe une armure
+     * @param {string} armorType - Type d'armure à équiper
+     */
+    equipArmor(armorType) {
+        if (!this.armors || !this.armors[armorType]) return false;
+        
+        // Déséquiper l'armure actuelle
+        if (this.equippedArmor) {
+            this.armors[this.equippedArmor].isEquipped = false;
+        }
+        
+        // Équiper la nouvelle armure
+        this.armors[armorType].isEquipped = true;
+        this.equippedArmor = armorType;
+        
+        // Appliquer la logique de l'armure si elle existe
+        if (this.armors[armorType].logic) {
+            this.armors[armorType].logic.call(this, this.armors[armorType].properties);
+        }
+        
+        this.emit('armorEquipped', { type: armorType, properties: this.armors[armorType].properties });
+        console.log(`[Crocobras] Armure '${armorType}' équipée.`);
+        return true;
+    }
+
+    /**
+     * crocodial: Permet aux développeurs de créer leurs propres dialogues personnalisés.
+     * @param {string} dialogueId - Identifiant unique du dialogue
+     * @param {Object} dialogueData - Données du dialogue (textes, choix, conditions)
+     * @param {Function} [dialogueLogic] - Logique personnalisée du dialogue
+     */
+    crocodial(dialogueId, dialogueData, dialogueLogic = null) {
+        if (!this.dialogues) {
+            this.dialogues = {};
+            this.currentDialogue = null;
+        }
+        
+        this.dialogues[dialogueId] = {
+            data: {
+                texts: [],
+                choices: [],
+                conditions: {},
+                speaker: 'narrator',
+                ...dialogueData
+            },
+            logic: dialogueLogic,
+            isActive: false,
+            currentStep: 0
+        };
+        
+        this.emit('dialogueCreated', { id: dialogueId, data: dialogueData });
+        console.log(`[Crocobras] Dialogue '${dialogueId}' créé.`);
+    }
+
+    /**
+     * Lance un dialogue
+     * @param {string} dialogueId - ID du dialogue à lancer
+     * @param {Object} [context] - Contexte pour le dialogue
+     */
+    startDialogue(dialogueId, context = {}) {
+        if (!this.dialogues || !this.dialogues[dialogueId]) return false;
+        
+        const dialogue = this.dialogues[dialogueId];
+        dialogue.isActive = true;
+        dialogue.currentStep = 0;
+        this.currentDialogue = dialogueId;
+        
+        if (dialogue.logic) {
+            dialogue.logic.call(this, dialogue.data, context);
+        }
+        
+        this.emit('dialogueStarted', { 
+            id: dialogueId, 
+            data: dialogue.data, 
+            context: context 
+        });
+        
+        console.log(`[Crocobras] Dialogue '${dialogueId}' démarré.`);
+        return true;
+    }
+
+    /**
+     * crocomise: Permet aux développeurs d'écrire des logiques de missions ou quêtes.
+     * @param {string} missionId - ID unique de la mission
+     * @param {Object} missionData - Données de la mission (objectifs, récompenses, etc.)
+     * @param {Function} missionLogic - Logique personnalisée de la mission
+     */
+    crocomise(missionId, missionData, missionLogic) {
+        if (typeof missionLogic !== 'function') {
+            throw new Error("crocomise: missionLogic doit être une fonction.");
+        }
+        
+        if (!this.missions) {
+            this.missions = {};
+            this.activeMissions = [];
+            this.completedMissions = [];
+        }
+        
+        this.missions[missionId] = {
+            data: {
+                title: 'Mission sans titre',
+                description: '',
+                objectives: [],
+                rewards: {},
+                difficulty: 'normal',
+                timeLimit: null,
+                ...missionData
+            },
+            logic: missionLogic,
+            status: 'available', // available, active, completed, failed
+            progress: {},
+            startTime: null
+        };
+        
+        this.emit('missionCreated', { id: missionId, data: missionData });
+        console.log(`[Crocobras] Mission '${missionId}' créée.`);
+    }
+
+    /**
+     * Démarre une mission
+     * @param {string} missionId - ID de la mission à démarrer
+     */
+    startMission(missionId) {
+        if (!this.missions || !this.missions[missionId]) return false;
+        
+        const mission = this.missions[missionId];
+        if (mission.status !== 'available') return false;
+        
+        mission.status = 'active';
+        mission.startTime = Date.now();
+        mission.progress = {};
+        this.activeMissions.push(missionId);
+        
+        mission.logic.call(this, mission.data, mission.progress);
+        
+        this.emit('missionStarted', { 
+            id: missionId, 
+            data: mission.data, 
+            progress: mission.progress 
+        });
+        
+        console.log(`[Crocobras] Mission '${missionId}' démarrée.`);
+        return true;
+    }
+
+    /**
+     * Complète une mission
+     * @param {string} missionId - ID de la mission à compléter
+     * @param {Object} [results] - Résultats de la mission
+     */
+    completeMission(missionId, results = {}) {
+        if (!this.missions || !this.missions[missionId]) return false;
+        
+        const mission = this.missions[missionId];
+        if (mission.status !== 'active') return false;
+        
+        mission.status = 'completed';
+        this.activeMissions = this.activeMissions.filter(id => id !== missionId);
+        this.completedMissions.push(missionId);
+        
+        this.emit('missionCompleted', { 
+            id: missionId, 
+            data: mission.data, 
+            results: results,
+            rewards: mission.data.rewards
+        });
+        
+        console.log(`[Crocobras] Mission '${missionId}' terminée !`);
+        return true;
+    }
+
+    /**
+     * crocomons: Permet aux développeurs de créer leurs propres systèmes de monnaie et boutique.
+     * @param {string} currencyName - Nom de la monnaie
+     * @param {Object} shopData - Données de la boutique (articles, prix, etc.)
+     * @param {Function} purchaseLogic - Logique d'achat personnalisée
+     */
+    crocomons(currencyName, shopData, purchaseLogic) {
+        if (typeof purchaseLogic !== 'function') {
+            throw new Error("crocomons: purchaseLogic doit être une fonction.");
+        }
+        
+        if (!this.economy) {
+            this.economy = {
+                currencies: {},
+                shop: {},
+                inventory: {},
+                transactions: []
+            };
+        }
+        
+        this.economy.currencies[currencyName] = {
+            amount: shopData.startingAmount || 0,
+            properties: shopData.currencyProperties || {}
+        };
+        
+        this.economy.shop[currencyName] = {
+            items: shopData.items || [],
+            logic: purchaseLogic,
+            settings: shopData.settings || {}
+        };
+        
+        this.emit('economySystemCreated', { currency: currencyName, shopData });
+        console.log(`[Crocobras] Système économique '${currencyName}' créé.`);
+    }
+
+    /**
+     * Effectue un achat dans la boutique
+     * @param {string} currencyName - Nom de la monnaie utilisée
+     * @param {string} itemId - ID de l'article à acheter
+     * @param {number} [quantity] - Quantité à acheter
+     */
+    purchase(currencyName, itemId, quantity = 1) {
+        if (!this.economy || !this.economy.shop[currencyName]) return false;
+        
+        const shop = this.economy.shop[currencyName];
+        const currency = this.economy.currencies[currencyName];
+        
+        const result = shop.logic.call(this, {
+            itemId: itemId,
+            quantity: quantity,
+            currency: currency,
+            inventory: this.economy.inventory,
+            shop: shop
+        });
+        
+        if (result.success) {
+            this.economy.transactions.push({
+                timestamp: Date.now(),
+                type: 'purchase',
+                currencyName: currencyName,
+                itemId: itemId,
+                quantity: quantity,
+                cost: result.cost
+            });
+            
+            this.emit('purchaseCompleted', { 
+                currencyName, 
+                itemId, 
+                quantity, 
+                result 
+            });
+            
+            console.log(`[Crocobras] Achat réussi: ${quantity}x ${itemId}`);
+        }
+        
+        return result;
+    }
+
+    /**
+     * crocodym: Permet aux développeurs de coder des logiques de changements environnementaux.
+     * @param {string} environmentId - ID de l'environnement
+     * @param {Object} environmentData - Données de l'environnement
+     * @param {Function} environmentLogic - Logique des changements environnementaux
+     */
+    crocodym(environmentId, environmentData, environmentLogic) {
+        if (typeof environmentLogic !== 'function') {
+            throw new Error("crocodym: environmentLogic doit être une fonction.");
+        }
+        
+        if (!this.environments) {
+            this.environments = {};
+            this.currentEnvironment = null;
+        }
+        
+        this.environments[environmentId] = {
+            data: {
+                obstacles: [],
+                effects: [],
+                climate: 'normal',
+                visibility: 1.0,
+                ...environmentData
+            },
+            logic: environmentLogic,
+            isActive: false,
+            lastUpdate: Date.now()
+        };
+        
+        this.emit('environmentCreated', { id: environmentId, data: environmentData });
+        console.log(`[Crocobras] Environnement '${environmentId}' créé.`);
+    }
+
+    /**
+     * Active un environnement
+     * @param {string} environmentId - ID de l'environnement à activer
+     * @param {Object} [parameters] - Paramètres d'activation
+     */
+    activateEnvironment(environmentId, parameters = {}) {
+        if (!this.environments || !this.environments[environmentId]) return false;
+        
+        // Désactiver l'environnement actuel
+        if (this.currentEnvironment) {
+            this.environments[this.currentEnvironment].isActive = false;
+        }
+        
+        const environment = this.environments[environmentId];
+        environment.isActive = true;
+        environment.lastUpdate = Date.now();
+        this.currentEnvironment = environmentId;
+        
+        environment.logic.call(this, environment.data, parameters);
+        
+        this.emit('environmentActivated', { 
+            id: environmentId, 
+            data: environment.data, 
+            parameters 
+        });
+        
+        console.log(`[Crocobras] Environnement '${environmentId}' activé.`);
+        return true;
+    }
+
+    /**
+     * crocopay: Permet aux développeurs de scripter des logiques pour des changements d'assets personnalisés.
+     * @param {string} assetType - Type d'asset (background, crocodile, arm, etc.)
+     * @param {Object} assetData - Données de l'asset
+     * @param {Function} customizationLogic - Logique de personnalisation
+     */
+    crocopay(assetType, assetData, customizationLogic) {
+        if (typeof customizationLogic !== 'function') {
+            throw new Error("crocopay: customizationLogic doit être une fonction.");
+        }
+        
+        if (!this.assetCustomization) {
+            this.assetCustomization = {};
+            this.equippedAssets = {};
+        }
+        
+        if (!this.assetCustomization[assetType]) {
+            this.assetCustomization[assetType] = {};
+        }
+        
+        const assetId = assetData.id || `${assetType}_${Date.now()}`;
+        
+        this.assetCustomization[assetType][assetId] = {
+            data: {
+                name: assetData.name || 'Asset sans nom',
+                rarity: assetData.rarity || 'common',
+                unlocked: assetData.unlocked || false,
+                price: assetData.price || 0,
+                ...assetData
+            },
+            logic: customizationLogic,
+            isEquipped: false
+        };
+        
+        this.emit('assetCreated', { type: assetType, id: assetId, data: assetData });
+        console.log(`[Crocobras] Asset '${assetId}' de type '${assetType}' créé.`);
+    }
+
+    /**
+     * Équipe un asset personnalisé
+     * @param {string} assetType - Type d'asset
+     * @param {string} assetId - ID de l'asset à équiper
+     */
+    equipAsset(assetType, assetId) {
+        if (!this.assetCustomization || !this.assetCustomization[assetType] || !this.assetCustomization[assetType][assetId]) {
+            return false;
+        }
+        
+        const asset = this.assetCustomization[assetType][assetId];
+        if (!asset.data.unlocked) return false;
+        
+        // Déséquiper l'asset actuel du même type
+        if (this.equippedAssets[assetType]) {
+            const currentAsset = this.assetCustomization[assetType][this.equippedAssets[assetType]];
+            if (currentAsset) currentAsset.isEquipped = false;
+        }
+        
+        // Équiper le nouvel asset
+        asset.isEquipped = true;
+        this.equippedAssets[assetType] = assetId;
+        
+        asset.logic.call(this, asset.data);
+        
+        this.emit('assetEquipped', { type: assetType, id: assetId, data: asset.data });
+        console.log(`[Crocobras] Asset '${assetId}' équipé pour '${assetType}'.`);
+        return true;
+    }
+
+    /**
+     * crocia: Permet aux développeurs de coder des comportements IA personnalisés pour les crocodiles.
+     * @param {number} crocoId - ID du crocodile
+     * @param {string} aiType - Type d'IA (aggressive, defensive, smart, random, etc.)
+     * @param {Function} aiLogic - Logique de l'IA personnalisée
+     * @param {Object} [aiSettings] - Paramètres de l'IA
+     */
+    crocia(crocoId, aiType, aiLogic, aiSettings = {}) {
+        if (typeof aiLogic !== 'function') {
+            throw new Error("crocia: aiLogic doit être une fonction.");
+        }
+        
+        if (!this.crocodileAI) {
+            this.crocodileAI = {};
+        }
+        
+        this.crocodileAI[crocoId] = {
+            type: aiType,
+            logic: aiLogic,
+            settings: {
+                aggressiveness: 0.5,
+                intelligence: 0.5,
+                adaptability: 0.3,
+                memory: [],
+                ...aiSettings
+            },
+            state: 'idle',
+            lastDecision: Date.now(),
+            decisions: []
+        };
+        
+        this.emit('crocodileAISet', { crocoId, aiType, settings: aiSettings });
+        console.log(`[Crocobras] IA '${aiType}' configurée pour le crocodile ${crocoId}.`);
+    }
+
+    /**
+     * Met à jour l'IA d'un crocodile
+     * @param {number} crocoId - ID du crocodile
+     * @param {Object} [context] - Contexte pour la prise de décision
+     */
+    updateCrocodileAI(crocoId, context = {}) {
+        if (!this.crocodileAI || !this.crocodileAI[crocoId]) return;
+        
+        const ai = this.crocodileAI[crocoId];
+        const gameState = this.getGameState();
+        
+        const decision = ai.logic.call(this, {
+            crocoId: crocoId,
+            gameState: gameState,
+            aiState: ai.state,
+            settings: ai.settings,
+            memory: ai.settings.memory,
+            context: context
+        });
+        
+        if (decision) {
+            ai.state = decision.newState || ai.state;
+            ai.lastDecision = Date.now();
+            ai.decisions.push({
+                timestamp: Date.now(),
+                decision: decision,
+                context: context
+            });
+            
+            // Garder seulement les 10 dernières décisions en mémoire
+            if (ai.decisions.length > 10) {
+                ai.decisions.shift();
+            }
+            
+            this.emit('crocodileAIDecision', { 
+                crocoId, 
+                decision, 
+                aiType: ai.type, 
+                context 
+            });
+        }
+    }
+
+    /**
+     * crocohab: Permet aux développeurs de scripter des logiques d'accessoires à collecter ou de succès.
+     * @param {string} collectibleType - Type de collectible (achievement, item, trophy, etc.)
+     * @param {Object} collectibleData - Données du collectible
+     * @param {Function} collectibleLogic - Logique de collecte personnalisée
+     */
+    crocohab(collectibleType, collectibleData, collectibleLogic) {
+        if (typeof collectibleLogic !== 'function') {
+            throw new Error("crocohab: collectibleLogic doit être une fonction.");
+        }
+        
+        if (!this.collectibles) {
+            this.collectibles = {};
+            this.unlockedCollectibles = [];
+        }
+        
+        if (!this.collectibles[collectibleType]) {
+            this.collectibles[collectibleType] = {};
+        }
+        
+        const collectibleId = collectibleData.id || `${collectibleType}_${Date.now()}`;
+        
+        this.collectibles[collectibleType][collectibleId] = {
+            data: {
+                name: collectibleData.name || 'Collectible sans nom',
+                description: collectibleData.description || '',
+                rarity: collectibleData.rarity || 'common',
+                rewards: collectibleData.rewards || {},
+                requirements: collectibleData.requirements || {},
+                ...collectibleData
+            },
+            logic: collectibleLogic,
+            isUnlocked: false,
+            unlockedAt: null,
+            progress: {}
+        };
+        
+        this.emit('collectibleCreated', { type: collectibleType, id: collectibleId, data: collectibleData });
+        console.log(`[Crocobras] Collectible '${collectibleId}' de type '${collectibleType}' créé.`);
+    }
+
+    /**
+     * Vérifie et débloque des collectibles
+     * @param {string} collectibleType - Type de collectible à vérifier
+     * @param {Object} [context] - Contexte pour la vérification
+     */
+    checkCollectibles(collectibleType, context = {}) {
+        if (!this.collectibles || !this.collectibles[collectibleType]) return;
+        
+        Object.entries(this.collectibles[collectibleType]).forEach(([id, collectible]) => {
+            if (!collectible.isUnlocked) {
+                const result = collectible.logic.call(this, {
+                    collectibleData: collectible.data,
+                    gameState: this.getGameState(),
+                    context: context,
+                    progress: collectible.progress
+                });
+                
+                if (result && result.unlocked) {
+                    collectible.isUnlocked = true;
+                    collectible.unlockedAt = Date.now();
+                    collectible.progress = result.progress || {};
+                    this.unlockedCollectibles.push(`${collectibleType}:${id}`);
+                    
+                    this.emit('collectibleUnlocked', { 
+                        type: collectibleType, 
+                        id: id, 
+                        data: collectible.data,
+                        rewards: collectible.data.rewards
+                    });
+                    
+                    console.log(`[Crocobras] Collectible '${id}' débloqué !`);
+                }
+            }
+        });
+    }
+
+    /**
+     * crocotive: Fonction créative pour des messages aléatoires envoyés par différents personnages.
+     * @param {string} messageType - Type de message (crocodile, arm, narrator, etc.)
+     * @param {Object} messageData - Données des messages
+     * @param {Function} messageLogic - Logique de sélection des messages
+     */
+    crocotive(messageType, messageData, messageLogic) {
+        if (typeof messageLogic !== 'function') {
+            throw new Error("crocotive: messageLogic doit être une fonction.");
+        }
+        
+        if (!this.creativeMessages) {
+            this.creativeMessages = {};
+        }
+        
+        this.creativeMessages[messageType] = {
+            data: {
+                messages: messageData.messages || [],
+                frequency: messageData.frequency || 'random',
+                conditions: messageData.conditions || {},
+                speakers: messageData.speakers || [messageType],
+                ...messageData
+            },
+            logic: messageLogic,
+            lastMessage: null,
+            messageHistory: []
+        };
+        
+        this.emit('creativeMessagesRegistered', { type: messageType, data: messageData });
+        console.log(`[Crocobras] Messages créatifs '${messageType}' enregistrés.`);
+    }
+
+    /**
+     * Déclenche un message créatif
+     * @param {string} messageType - Type de message à déclencher
+     * @param {Object} [context] - Contexte pour la sélection du message
+     */
+    triggerCreativeMessage(messageType, context = {}) {
+        if (!this.creativeMessages || !this.creativeMessages[messageType]) return null;
+        
+        const messageSystem = this.creativeMessages[messageType];
+        const gameState = this.getGameState();
+        
+        const result = messageSystem.logic.call(this, {
+            messageData: messageSystem.data,
+            gameState: gameState,
+            context: context,
+            history: messageSystem.messageHistory
+        });
+        
+        if (result && result.message) {
+            messageSystem.lastMessage = {
+                timestamp: Date.now(),
+                message: result.message,
+                speaker: result.speaker || messageType,
+                context: context
+            };
+            
+            messageSystem.messageHistory.push(messageSystem.lastMessage);
+            
+            // Garder seulement les 20 derniers messages
+            if (messageSystem.messageHistory.length > 20) {
+                messageSystem.messageHistory.shift();
+            }
+            
+            this.emit('creativeMessageTriggered', { 
+                type: messageType, 
+                message: result.message,
+                speaker: result.speaker,
+                context: context
+            });
+            
+            console.log(`[Crocobras] Message créatif (${result.speaker}): ${result.message}`);
+            return result;
+        }
+        
+        return null;
+    }
+
+    /**
+     * croconage: Permet aux développeurs de créer leurs propres personnages personnalisés.
+     * @param {string} characterId - ID unique du personnage
+     * @param {Object} characterData - Données du personnage
+     * @param {Function} characterLogic - Logique de comportement du personnage
+     */
+    croconage(characterId, characterData, characterLogic) {
+        if (typeof characterLogic !== 'function') {
+            throw new Error("croconage: characterLogic doit être une fonction.");
+        }
+        
+        if (!this.customCharacters) {
+            this.customCharacters = {};
+            this.activeCharacters = [];
+        }
+        
+        this.customCharacters[characterId] = {
+            data: {
+                name: characterData.name || 'Personnage sans nom',
+                type: characterData.type || 'neutral',
+                health: characterData.health || 100,
+                abilities: characterData.abilities || [],
+                appearance: characterData.appearance || {},
+                personality: characterData.personality || {},
+                ...characterData
+            },
+            logic: characterLogic,
+            isActive: false,
+            state: 'idle',
+            interactions: [],
+            lastUpdate: Date.now()
+        };
+        
+        this.emit('customCharacterCreated', { id: characterId, data: characterData });
+        console.log(`[Crocobras] Personnage personnalisé '${characterId}' créé.`);
+    }
+
+    /**
+     * Active un personnage personnalisé
+     * @param {string} characterId - ID du personnage à activer
+     * @param {Object} [spawnData] - Données d'apparition
+     */
+    spawnCharacter(characterId, spawnData = {}) {
+        if (!this.customCharacters || !this.customCharacters[characterId]) return false;
+        
+        const character = this.customCharacters[characterId];
+        if (character.isActive) return false;
+        
+        character.isActive = true;
+        character.state = spawnData.initialState || 'idle';
+        character.lastUpdate = Date.now();
+        
+        if (!this.activeCharacters.includes(characterId)) {
+            this.activeCharacters.push(characterId);
+        }
+        
+        character.logic.call(this, {
+            characterData: character.data,
+            gameState: this.getGameState(),
+            spawnData: spawnData,
+            action: 'spawn'
+        });
+        
+        this.emit('characterSpawned', { 
+            id: characterId, 
+            data: character.data, 
+            spawnData: spawnData 
+        });
+        
+        console.log(`[Crocobras] Personnage '${characterId}' apparu dans le jeu.`);
+        return true;
+    }
+
+    /**
+     * Met à jour un personnage personnalisé
+     * @param {string} characterId - ID du personnage à mettre à jour
+     * @param {Object} [updateData] - Données de mise à jour
+     */
+    updateCharacter(characterId, updateData = {}) {
+        if (!this.customCharacters || !this.customCharacters[characterId] || !this.customCharacters[characterId].isActive) {
+            return;
+        }
+        
+        const character = this.customCharacters[characterId];
+        character.lastUpdate = Date.now();
+        
+        const result = character.logic.call(this, {
+            characterData: character.data,
+            gameState: this.getGameState(),
+            updateData: updateData,
+            currentState: character.state,
+            action: 'update'
+        });
+        
+        if (result) {
+            character.state = result.newState || character.state;
+            
+            if (result.interaction) {
+                character.interactions.push({
+                    timestamp: Date.now(),
+                    interaction: result.interaction,
+                    context: updateData
+                });
+            }
+            
+            this.emit('characterUpdated', { 
+                id: characterId, 
+                state: character.state, 
+                result: result 
+            });
+        }
+    }
 }
 
 // Exporte la classe du jeu
